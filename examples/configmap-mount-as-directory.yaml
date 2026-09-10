@@ -1,0 +1,31 @@
+name: app-mount-as-directory
+namespace: test
+
+image:
+  repository: nginx
+  tag: latest
+
+workload:
+  enabled: true
+  type: deployment
+  replicas: 1
+
+service:
+  enabled: false
+
+# Exercises the `mountAsDirectory: true` opt-out of the legacy single-file
+# mount semantics. Without the flag, mountPath would be concatenated with the
+# entry name (e.g. /etc/app/config.yaml) and a subPath defaulted — here we
+# want the ConfigMap mounted as a directory at mountPath exactly.
+configMaps:
+  app-config:
+    contentType: yaml
+    name: config.yaml
+    mountPath: /etc/app
+    mountAsDirectory: true
+    content:
+      server:
+        host: 0.0.0.0
+        port: 8080
+      logging:
+        level: info

@@ -1,0 +1,30 @@
+# Downward API Volume Example
+# Exposes pod metadata as files via Kubernetes Downward API.
+# Common use: apps that need to know their own namespace, name, labels, etc.
+
+name: metadata-aware-app
+
+image:
+  repository: docker.io
+  name: busybox
+  tag: latest
+
+workload:
+  type: deployment
+  replicas: 1
+
+command: ["sh", "-c", "cat /etc/podinfo/namespace && sleep 3600"]
+
+volumes:
+  podinfo:
+    type: downwardAPI
+    destinationPath: /etc/podinfo
+    items:
+      - path: namespace
+        fieldPath: metadata.namespace
+      - path: name
+        fieldPath: metadata.name
+      - path: labels
+        fieldPath: metadata.labels
+      - path: annotations
+        fieldPath: metadata.annotations

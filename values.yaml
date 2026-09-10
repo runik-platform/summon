@@ -1,0 +1,396 @@
+
+# Summon - Kubernetes Workload Deployment Chart
+
+# Supports: Deployment, StatefulSet, Job, CronJob, DaemonSet
+# Examples: See charts/summon/examples/
+
+# WORKLOAD
+
+workload:
+  enabled: true
+  type: deployment  # Options: deployment, statefulset, job, cronjob, daemonset
+  replicas: 1
+
+  # Security context for the primary container
+  securityContext: {}
+  # capabilities:
+  #   drop:
+  #     - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+  # allowPrivilegeEscalation: false
+
+  # StatefulSet-specific: Volume Claim Templates
+  # Creates persistent volumes that follow pod lifecycle
+  # Example: See charts/summon/examples/statefulset-with-storage.yaml
+  # volumeClaimTemplates:
+  #   data-volume:
+  #     destinationPath: /data
+  #     size: 10Gi
+  #     storageClassName: fast-ssd  # Optional, uses cluster default if not specified
+  #     accessModes: ReadWriteOnce  # Optional, default: ReadWriteOnce
+  #   cache-volume:
+  #     destinationPath: /cache
+  #     size: 5Gi
+
+  # CronJob-specific: Schedule (REQUIRED for cronjob type)
+  # Cron format: minute hour day month weekday
+  # schedule: "0 3 * * *"      # Run daily at 3 AM
+  # schedule: "*/5 * * * *"    # Run every 5 minutes
+  # schedule: "0 */2 * * *"    # Run every 2 hours
+
+  # Job/CronJob-specific: Retry and timeout configuration
+  # backoffLimit: 3            # Number of retries before marking job as failed
+  # activeDeadlineSeconds: 600 # Maximum time in seconds for job to complete
+
+# CONTAINER IMAGE
+
+image:
+  repository: ""
+  pullPolicy: IfNotPresent
+  name: ""
+  tag: ""
+
+imagePullSecrets: []
+# - name: regcred
+
+nameOverride: ""
+fullnameOverride: ""
+
+# SERVICE ACCOUNT
+
+serviceAccount:
+  enabled: true
+  automount: true
+  annotations: {}
+  # vault.hashicorp.com/role: my-app
+  # eks.amazonaws.com/role-arn: arn:aws:iam::123456789012:role/my-role
+  labels: {}
+  name: ""
+
+# POD
+
+podAnnotations: {}
+# prometheus.io/scrape: "true"
+# prometheus.io/port: "8080"
+
+podLabels: {}
+# version: "1.0.0"
+
+# Pod-level security context
+securityContext: {}
+# fsGroup: 2000
+# runAsNonRoot: true
+# runAsUser: 1000
+# seccompProfile:
+#   type: RuntimeDefault
+
+# SERVICE
+
+service:
+  enabled: true
+  type: ClusterIP  # Options: ClusterIP, NodePort, LoadBalancer
+  annotations: {}
+  labels: {}
+  ports: []
+  # - port: 80
+  #   targetPort: 8080
+  #   protocol: TCP
+  #   name: http
+  #   nodePort: 30443  # NodePort only
+
+# RESOURCES
+
+resources: {}
+# limits:
+#   cpu: 500m
+#   memory: 512Mi
+# requests:
+#   cpu: 250m
+#   memory: 256Mi
+
+# HEALTH CHECKS
+# probes:
+#   liveness:
+#     type: httpGet
+#     path: /healthz
+#     port: 8080
+#     initialDelaySeconds: 30
+#     periodSeconds: 10
+#     failureThreshold: 3
+#   readiness:
+#     type: tcpSocket
+#     port: 8080
+#   startup:
+#     type: exec
+#     command: ["/bin/sh", "-c", "test -f /app/ready"]
+#     failureThreshold: 30
+
+# AUTOSCALING
+
+# Horizontal Pod Autoscaler for automatic scaling based on metrics
+autoscaling:
+  enabled: false                        # Enable HPA
+  minReplicas: 1                        # Minimum number of pods
+  maxReplicas: 10                       # Maximum number of pods
+  targetCPUUtilizationPercentage: 80    # Target CPU utilization
+  # targetMemoryUtilizationPercentage: 80  # Target memory utilization
+
+# POD SCHEDULING
+
+# Control which nodes pods are scheduled on
+
+# Node selector: Simple key-value node selection
+nodeSelector: {}
+# disktype: ssd
+# node.kubernetes.io/instance-type: t3.large
+
+# Tolerations: Allow pods to schedule on tainted nodes
+tolerations: []
+# - key: "key1"
+#   operator: "Equal"
+#   value: "value1"
+#   effect: "NoSchedule"
+# - key: "node.kubernetes.io/unreachable"
+#   operator: "Exists"
+#   effect: "NoExecute"
+#   tolerationSeconds: 300
+
+# Affinity: Advanced pod and node affinity rules
+affinity: {}
+# podAntiAffinity:                     # Spread pods across nodes
+#   preferredDuringSchedulingIgnoredDuringExecution:
+#   - weight: 100
+#     podAffinityTerm:
+#       topologyKey: kubernetes.io/hostname
+#       labelSelector:
+#         matchLabels:
+#           app: myapp
+# nodeAffinity:                        # Require specific node types
+#   requiredDuringSchedulingIgnoredDuringExecution:
+#     nodeSelectorTerms:
+#     - matchExpressions:
+#       - key: node-role.kubernetes.io/worker
+#         operator: In
+#         values:
+#         - "true"
+
+# INIT CONTAINERS
+
+initContainers: {}
+# db-migration:
+#   image:
+#     repository: migrate/migrate
+#     tag: latest
+#   command: [migrate]
+#   args: [-path=/migrations, -database=postgres://user:pass@db/mydb, up]
+
+# SIDECAR CONTAINERS
+
+sideCars: {}
+# prometheus-exporter:
+#   image:
+#     repository: prom/node-exporter
+#     tag: latest
+#   resources:
+#     limits:
+#       cpu: 100m
+#       memory: 128Mi
+# cloud-sql-proxy:
+#   image:
+#     repository: gcr.io/cloudsql-docker/gce-proxy
+#     tag: latest
+#   command:
+#   - /cloud_sql_proxy
+#   - -instances=project:region:instance=tcp:5432
+
+# SECRETS
+
+# Kubernetes Secrets configuration with unified contentType system
+# Secrets can be referenced (location: local) or created (location: create)
+# Example: See charts/summon/examples/deployment-with-secrets-env.yaml
+secrets: {}
+# db-credentials:
+#   contentType: env        # All keys added to container environment via envFrom
+#   location: local         # Reference existing secret
+# tls-cert:
+#   contentType: file       # Mount secret as file
+#   location: local
+#   mountPath: /etc/tls
+#   name: tls.crt
+# api-key:
+#   contentType: file
+#   location: create        # Create the secret from content below
+#   mountPath: /etc/api
+#   content: "sk_live_abcdef123456"
+# app-secrets:
+#   contentType: yaml       # YAML formatted file
+#   location: create
+#   mountPath: /config
+#   name: secrets.yaml
+#   content:
+#     database:
+#       host: postgres.local
+#       password: secretpass
+
+# CONFIGMAPS
+
+# Kubernetes ConfigMaps configuration with unified contentType system
+# ConfigMaps can be referenced (location: local) or created (location: create)
+# Example: See charts/summon/examples/configmap-unified-contenttype.yaml
+configMaps: {}
+# app-env-vars:
+#   contentType: env        # All keys as environment variables via envFrom
+#   location: local         # Reference existing ConfigMap
+# app-config:
+#   contentType: yaml       # YAML formatted config file
+#   location: create
+#   name: config.yaml
+#   mountPath: /app/config
+#   content:
+#     server:
+#       port: 8080
+#       host: 0.0.0.0
+#     features:
+#       cache: true
+#       metrics: true
+# nginx-conf:
+#   contentType: file       # Plain text file
+#   location: create
+#   name: nginx.conf
+#   mountPath: /etc/nginx
+#   content: |
+#     server {
+#       listen 80;
+#       location / {
+#         proxy_pass http://backend;
+#       }
+#     }
+# app-settings:
+#   contentType: json       # JSON formatted file
+#   location: create
+#   name: settings.json
+#   mountPath: /app/settings
+#   content:
+#     debug: false
+#     timeout: 30
+#     retries: 3
+
+# VOLUMES
+
+# Persistent and ephemeral storage volumes
+# Supports: PVC, hostPath, NFS, emptyDir
+# Example: See charts/summon/examples/deployment-with-storage.yaml
+volumes: {}
+# # PersistentVolumeClaim
+# data:
+#   type: pvc
+#   destinationPath: /data
+#   name: app-data          # Optional claim/resource name
+#   size: 10Gi
+#   storageClass: fast-ssd
+#   accessMode: ReadWriteOnce
+#   readOnly: false
+#
+# # HostPath volume - mount path from node
+# host-data:
+#   type: hostPath
+#   destinationPath: /host/data
+#   path: /var/lib/data
+#
+# # NFS volume - network file system
+# shared-data:
+#   type: nfs
+#   destinationPath: /mnt/nfs
+#   server: nfs.example.com
+#   path: /exports/data
+#   readOnly: false
+#
+# # EmptyDir volume - temporary storage (deleted when pod stops)
+# temp-data:
+#   type: emptyDir
+#   destinationPath: /tmp/data
+#   size: 1Gi
+#   inMemory: true
+
+# ENVIRONMENT VARIABLES
+
+# Container environment variables with multiple sources
+envs: {}
+# # Simple key-value pairs
+# LOG_LEVEL: debug
+# APP_ENV: production
+#
+# # From Secret
+# DB_PASSWORD:
+#   type: secret
+#   name: db-secret
+#   key: password
+#
+# # From ConfigMap
+# API_ENDPOINT:
+#   type: configmap
+#   name: app-config
+#   key: api.endpoint
+
+# CONTAINER LIFECYCLE
+
+# Override container command and arguments
+# command: ["nginx"]
+# args: ["-g", "daemon off;"]
+
+# Lifecycle hooks for container startup and shutdown
+# lifecycle:
+#   preStop:                # Run before container stops (graceful shutdown)
+#     exec:
+#       command: ["/bin/sh", "-c", "nginx -s quit; while killall -0 nginx; do sleep 1; done"]
+#   postStart:              # Run after container starts
+#     httpGet:
+#       path: /healthz
+#       port: 8080
+
+# KUBERNETES LABELS
+
+# Optional label systems for cost tracking and identity management
+
+# FinOps Labels: Cost allocation and tracking (Kubecost-compatible)
+# Enable for cloud cost tracking, chargeback/showback, and resource analytics
+# Example: See charts/summon/examples/deployment-with-finops-labels.yaml
+# labels:
+#   finops:
+#     enabled: false        # Set to true to enable FinOps labels
+#     team: ""              # Team responsible (e.g., platform-team)
+#     owner: ""             # Resource owner - email/username (e.g., john.doe)
+#     costCenter: ""        # Cost center for chargeback (e.g., engineering-dept)
+#     department: ""        # Department (e.g., engineering, finance, platform)
+#     project: ""           # Project for cost allocation (e.g., core-api)
+#     environment: ""       # Environment (defaults to chapter.name if not set)
+#
+#   # Covenant Labels: Identity & Access Management tracking
+#   # Used for tracking IAM resources, users, teams, and organizational structure
+#   covenant:
+#     enabled: false        # Set to true to enable Covenant labels
+#     team: ""              # Team name
+#     owner: ""             # Owner email
+#     department: ""        # Department
+#     member: ""            # Member identifier (username/service account)
+#     organization: ""      # Organization name
+
+# Runik Platform CONFIGURATION
+
+# Runik-specific configuration for GitOps integration and labeling
+
+# Spellbook: Top-level grouping (platform/project name)
+# Used for app.kubernetes.io/part-of label and infrastructure tracking
+spellbook:
+  name: default
+
+# Chapter: Environment/stage grouping (dev/staging/production)
+# Used for infrastructure labels and as fallback for environment label
+chapter:
+  name: default
+
+# Component: Microservice categorization
+# Adds app.kubernetes.io/component label for organizing related services
+# component: backend    # Examples: backend, frontend, database, cache, api, worker
