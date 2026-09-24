@@ -1,6 +1,6 @@
-# CLAUDE.md — summon
+# AGENTS.md — summon
 
-Shared concepts live in the [root CLAUDE.md](../../CLAUDE.md) and [docs/vocabulary.md](../../docs/vocabulary.md); this file only states what is specific to the summon chart.
+Shared concepts live in the [root AGENTS.md](../../AGENTS.md) and [docs/vocabulary.md](../../docs/vocabulary.md); this file only states what is specific to the summon chart.
 
 ## 1. Role
 
@@ -8,7 +8,7 @@ Summon is the default, CRD-free way to deploy containers in runik. It ships as t
 
 ## 2. Field reference
 
-Every spell field summon accepts is documented in [docs/usage/summon.md](../../docs/usage/summon.md). This CLAUDE.md intentionally does not duplicate that reference.
+Every spell field summon accepts is documented in [docs/usage/summon.md](../../docs/usage/summon.md). This AGENTS.md intentionally does not duplicate that reference.
 
 ## 3. Internal glyph dispatcher
 
@@ -31,7 +31,10 @@ workflow
 
 Plus helpers that are not dispatched: `common`, `runic-system`, `summon`.
 
-Edit rule: edit only in the canonical path `charts/glyphs/`, then bump the submodule reference in `charts/summon/`. Per-glyph fields: [docs/usage/glyphs.md](../../docs/usage/glyphs.md).
+Edit rule: edit only in the canonical Glyphs repository. After its reviewed PR
+is merged, Tarot propagates the exact commit into Summon automatically. Manual
+submodule bumps are recovery-only. Per-glyph fields:
+[docs/usage/glyphs.md](../../docs/usage/glyphs.md).
 
 ## 5. The contentType system
 
@@ -47,7 +50,7 @@ Implementation: `charts/summon/charts/summon/templates/storage/{configMaps,secre
 
 ## 6. Relationship to microspell
 
-`microspell/` bundles summon as a subchart and calls summon's templates (`summon.workload.*`, `summon.configMap`, ...) from its own `templates/base.yaml`, then layers native CRD resources on top in `templates/microservice.yaml`. If a workload needs those CRDs, switch the spell to microspell instead of summon — fields that summon already understands flow through unchanged. Details: [trinkets/microspell/CLAUDE.md](../trinkets/microspell/CLAUDE.md).
+`microspell/` bundles summon as a subchart and calls summon's templates (`summon.workload.*`, `summon.configMap`, ...) from its own `templates/base.yaml`, then layers native CRD resources on top in `templates/microservice.yaml`. If a workload needs those CRDs, switch the spell to microspell instead of summon — fields that summon already understands flow through unchanged. Details: [trinkets/microspell/AGENTS.md](../trinkets/microspell/AGENTS.md).
 
 ## 7. Testing
 
@@ -61,8 +64,22 @@ make test     summon [file]
 
 ## 8. Related docs
 
-- [Root CLAUDE.md](../../CLAUDE.md) — framework-wide concepts.
-- [librarian/CLAUDE.md](../../librarian/CLAUDE.md) — what reaches summon.
+- [Root AGENTS.md](../../AGENTS.md) — framework-wide concepts.
+- [librarian/AGENTS.md](../../librarian/AGENTS.md) — what reaches summon.
 - [docs/usage/summon.md](../../docs/usage/summon.md) — field reference.
 - [docs/usage/glyphs.md](../../docs/usage/glyphs.md) — per-glyph fields.
 - [docs/design/summon-internals.md](../../docs/design/summon-internals.md) — code walkthrough.
+
+## Development and publication
+
+Forgejo `runik/summon` is the source of truth. Develop from `origin/upstream`,
+push a topic branch to Forgejo, and merge a reviewed PR into `upstream`; never
+develop on or push directly to the generated GitHub repo. Every upstream merge
+automatically triggers Runik component synchronization.
+
+For a release, first merge the intended version in `Chart.yaml`, then publish a
+Forgejo Release at the current `upstream` head with the exact tag
+`v<Chart.yaml.version>`. A raw tag push does not publish. Tarot creates a clean
+GitHub snapshot with the public Glyphs dependency, and GitHub Actions creates
+the Release plus the self-contained OCI chart at
+`oci://ghcr.io/runik-platform/summon`.
