@@ -9,7 +9,7 @@
 workload:
   enabled: true
   type: deployment  # Options: deployment, statefulset, job, cronjob, daemonset
-  replicas: 1
+  replicas: 1  # Used when autoscaling is disabled; explicit 0 is preserved
 
   # Security context for the primary container
   securityContext: {}
@@ -129,9 +129,11 @@ resources: {}
 
 # AUTOSCALING
 
-# Horizontal Pod Autoscaler for automatic scaling based on metrics
+# Replica ownership: disabled uses workload.replicas; enabled omits workload spec.replicas
 autoscaling:
-  enabled: false                        # Enable HPA
+  enabled: false                        # Hand replica ownership to an autoscaler
+  mode: hpa  # Optional: hpa (default) or external; ignored when disabled
+  # external creates no autoscaler resources; configure the controller separately
   minReplicas: 1                        # Minimum number of pods
   maxReplicas: 10                       # Maximum number of pods
   targetCPUUtilizationPercentage: 80    # Target CPU utilization

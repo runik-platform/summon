@@ -32,7 +32,7 @@ workflow
 Plus helpers that are not dispatched: `common`, `runic-system`, `summon`.
 
 Edit rule: edit only in the canonical Glyphs repository. After its reviewed PR
-is merged, Tarot propagates the exact commit into Summon automatically. Manual
+is merged, The Glyphs repository Workflow propagates the exact commit into Summon automatically. Manual
 submodule bumps are recovery-only. Per-glyph fields:
 [docs/usage/glyphs.md](../../docs/usage/glyphs.md).
 
@@ -79,7 +79,7 @@ automatically triggers Runik component synchronization.
 
 For a release, first merge the intended version in `Chart.yaml`, then publish a
 Forgejo Release at the current `upstream` head with the exact tag
-`v<Chart.yaml.version>`. A raw tag push does not publish. Tarot creates a clean
+`v<Chart.yaml.version>`. A raw tag push does not publish. The repository publication Workflow creates a clean
 GitHub snapshot with the public Glyphs dependency, and GitHub Actions creates
 the Release plus the self-contained OCI chart at
 `oci://ghcr.io/runik-platform/summon`.
